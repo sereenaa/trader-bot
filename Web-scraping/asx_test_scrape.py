@@ -8,19 +8,32 @@ page = requests.get(URL)
 soup = BeautifulSoup(page.content, 'html.parser')
 
 
-# for row in soup.find_all('tr', class_ = 'BdT Bdc($seperatorColor) Ta(end) Fz(s) Whs(nw)'): 
-#     for column in soup.find_all('td', class_ = 'Py(10px)'): 
-#         text = column.text
-#         print(text)
-
 date = []
 open = []
 high = []
-low_close = []
+low = []
+close = []
 adj_close = []
 volume = [] 
 
+for row in soup.find_all('tr'):
+    i=0
+    for item in row: 
+        if i==0:
+            date.append(item.text)
+        if i==1: 
+            open.append(item.text)
+        if i==2: 
+            high.append(item.text)
+        if i==3: 
+            low.append(item.text)
+        if i==4: 
+            close.append(item.text)
+        if i==5: 
+            adj_close.append(item.text)
+        if i==6: 
+            volume.append(item.text)
+        i+=1
 
-for row in soup.find_all('td', class_ = 'Py(10px)'): 
-    text = row.text
-    print(row)
+#df = pd.DataFrame({"Date": date, "Open": open, "High": high, "Low": low, "Close": close, "Adj_close": adj_close, "Volume": volume})
+df = pd.DataFrame(list(zip(date, open, high, low, close, adj_close, volume)))
