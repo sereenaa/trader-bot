@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import csv
 
-# USAGE: df = getStockHistory(<ticker>).get_df() 
+# USAGE: df = getStockHistory('ANZ.AX').get_df() 
 
 class getStockHistory: 
     df_link = 'https://au.finance.yahoo.com/quote/{ticker}/history?p={ticker}' 
