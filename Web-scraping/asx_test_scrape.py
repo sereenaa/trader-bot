@@ -35,5 +35,4 @@ for row in soup.find_all('tr'):
             volume.append(item.text)
         i+=1
 
-#df = pd.DataFrame({"Date": date, "Open": open, "High": high, "Low": low, "Close": close, "Adj_close": adj_close, "Volume": volume})
 df = pd.DataFrame(list(zip(date, open, high, low, close, adj_close, volume)))
