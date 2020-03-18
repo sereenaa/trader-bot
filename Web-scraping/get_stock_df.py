@@ -9,7 +9,7 @@ import csv
 
 # USAGE: df = getStockHistory('ANZ.AX').get_df() 
 
-class getStockHistory: 
+class StockHistory: 
     df_link = 'https://au.finance.yahoo.com/quote/{ticker}/history?p={ticker}' 
     
     def __init__(self, symbol):
