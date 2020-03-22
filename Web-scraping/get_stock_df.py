@@ -45,4 +45,6 @@ class StockHistory:
                 i+=1
 
         df = pd.DataFrame(list(zip(date, open, high, low, close, adj_close, volume)))
+        df.to_csv (r'C:\Users\Serena\OneDrive\Documents\Project Flipper\export_dataframe.csv', index = False, header=True)
         return(df)
+
