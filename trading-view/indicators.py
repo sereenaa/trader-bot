@@ -1,5 +1,42 @@
+import pandas as pd 
+
+
+# n is short term window eg. 50
+# m is long term window eg. 100
+def ma_calc(df, n, m): 
+    df['sma_1'] = df.Close.rolling(n).mean()
+    df['sma_2'] = df.Close.rolling(m).mean()
+
+
+# simple backtest function using sma_1 and sma_2
+# this assumes the df already has the sma columns
+def backtest(df): 
+    in_position = False
+    profits = []
+
+    for index, row in df.iterrows(): 
+        if not in_position:
+            if row.sma_1 > row.sma_2:
+                buyprice = row.Close
+                in_position = True
+        if in_position: 
+            if row.sma_1 < row.sma_2: 
+                profit = (row.Close - buyprice)/buyprice # this is in percentage decimals
+                profits.append(profit)
+                in_position=False
+    
+    print(profits)
+
+    # formula for the returns
+    # gain = (pd.Series(profits) + 1).prod()
+
+    gain = sum(profits)
+    return gain 
+
+
+
 # # https://tvdb.brianthe.dev/ 
-# import tradingview_ta as ta
+# import tradingview_ta as ta # pip install tradingview-ta
 
 # # Define the parameters for the MACD indicator
 # symbol = "AAPL"    # The symbol for the stock you want to get data for
@@ -20,24 +57,26 @@
 
 
 
-from tradingview_ta import TA_Handler, Interval, Exchange
-tesla = TA_Handler(
-    symbol="TSLA",
-    screener="america",
-    exchange="NASDAQ",
-    interval=Interval.INTERVAL_1_DAY
-    #proxies={'http': 'http://0.0.0.0:8080', 'https': 'https://0.0.0.0:443'}
-)
-print(tesla.get_analysis().summary)
+# from tradingview_ta import TA_Handler, Interval, Exchange
+# tesla = TA_Handler(
+#     symbol="TSLA",
+#     screener="america",
+#     exchange="NASDAQ",
+#     interval=Interval.INTERVAL_1_DAY
+#     #proxies={'http': 'http://0.0.0.0:8080', 'https': 'https://0.0.0.0:443'}
+# )
+# print(tesla.get_analysis().summary)
 
 
-eth = TA_Handler(
-    symbol="ETHUSDT",
-    screener="Crypto",
-    exchange="BINANCE",
-    interval=Interval.INTERVAL_1_MINUTE
-    #proxies={'http': 'http://0.0.0.0:8080', 'https': 'https://0.0.0.0:443'}
-)
+# eth = TA_Handler(
+#     symbol="ETHUSDT",
+#     screener="Crypto",
+#     exchange="BINANCE",
+#     interval=Interval.INTERVAL_1_MINUTE
+#     #proxies={'http': 'http://0.0.0.0:8080', 'https': 'https://0.0.0.0:443'}
+# )
 
-print(eth.get_analysis().summary)
-print(eth.get_analysis().indicators)
+# print(eth.get_analysis().summary)
+# print(eth.get_analysis().indicators)
+
+
