@@ -1,38 +1,40 @@
 import pandas as pd 
+import numpy as np
 
 
+# Moving Average
 # n is short term window eg. 50
 # m is long term window eg. 100
-def ma_calc(df, n, m): 
+# Appends the short term moving average and long term moving average to the dataframe
+def ma(df, n, m): 
     df['sma_1'] = df.Close.rolling(n).mean()
     df['sma_2'] = df.Close.rolling(m).mean()
 
 
-# simple backtest function using sma_1 and sma_2
-# this assumes the df already has the sma columns
-def backtest(df): 
-    in_position = False
-    profits = []
 
-    for index, row in df.iterrows(): 
-        if not in_position:
-            if row.sma_1 > row.sma_2:
-                buyprice = row.Close
-                in_position = True
-        if in_position: 
-            if row.sma_1 < row.sma_2: 
-                profit = (row.Close - buyprice)/buyprice # this is in percentage decimals
-                profits.append(profit)
-                in_position=False
-    
-    print(profits)
+# Exponential Moving Average
+# Appends the chosen EMA to the dataframe
+# https://www.youtube.com/watch?v=VhOAHQKb4mM&list=PLFZ0Tjtnb1cE7rgFyf7cBojjRXz9oSdKt&index=10&t=368s
+def ema(df, column_name, length): 
+    # src is the column of the pandas dataframe you want to calculate EMA on
+    # it is converted to a numpy array
+    src = df[column_name].to_numpy()
 
-    # formula for the returns
-    # gain = (pd.Series(profits) + 1).prod()
+    ind = np.empty(shape=src.shape, dtype=float)
+    alpha = 2 / (length + 1)
 
-    gain = sum(profits)
-    return gain 
+    for i in range(len(src)): 
+        if i==0 or np.isnan(src[i]) or (i>0 and np.isnan(ind[i-1])): 
+            ind[i] = src[i]
+            continue
 
+        ind[i] = (alpha * src[i]) + (1 - alpha) * ind[i-1]
+
+    ind[:length - 1] = np.nan
+
+    df['ema_{}'.format(length)] = ind
+
+    return ind
 
 
 # # https://tvdb.brianthe.dev/ 

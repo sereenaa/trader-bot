@@ -4,7 +4,8 @@ import pandas as pd
 from datetime import timedelta
 from sqlalchemy import create_engine #pip install sqlalchemy==1.4.16
 
-from indicators import ma_calc, backtest
+from indicators import ma, ema
+from helper_functions import backtest, hodl_gain
 
 # create sqlite engine
 engine = create_engine('sqlite:///sez_test.db')
@@ -30,9 +31,13 @@ new_rows.to_sql('ETHUSD_1m', engine, if_exists='append')
 
 # read from database again
 new_result = pd.read_sql('SELECT * FROM ETHUSD_1m', engine)
-ma_calc(new_result, 50, 100)
+ma(new_result, 50, 100)
 print(new_result)
 
 
 gain = backtest(new_result)
-print(gain)
+hodl_gain = hodl_gain(new_result, '2023-04-04 22:34:00.000000')
+
+print(ema(new_result, 'Open', 200))
+
+print(new_result)
