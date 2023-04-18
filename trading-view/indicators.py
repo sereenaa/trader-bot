@@ -6,7 +6,7 @@ import ta
 # n is short term window eg. 50
 # m is long term window eg. 100
 # Appends the short term moving average and long term moving average to the dataframe
-def ma(df, n, m): 
+def sma(df, n, m): 
     df['sma_1'] = df.Close.rolling(n).mean()
     df['sma_2'] = df.Close.rolling(m).mean()
 
@@ -40,4 +40,15 @@ def ema(df, column_name, length):
 
     return ind
 
+
+# Generate the long/short signal
+def get_long_short_signal(df): 
+    # 0 = not in position, 1 = long, -1 = short
+
+    df.loc[df['Close'] > df['sma_1'], 'Signal'] = 1
+    df.loc[df['Close'] < df['sma_1'], 'Signal'] = -1
+    # if df['Close'] > df['sma_1']: 
+    #     df['Signal'] = 1
+    # elif df['Close'] < df['sma_1']:
+    #     df['Signal'] = -1
 

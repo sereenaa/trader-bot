@@ -119,7 +119,7 @@ def backtest_v3(df):
                 in_position = False
                 print('Sold because of indicator')
             elif r_count >= 10: 
-                sells.append(row.price) # sell if we have held the position longer than 10 days
+                sells.append(row.Close) # sell if we have held the position longer than 10 days
                 in_position = False
                 print('Sold after 10 days')
 
@@ -133,3 +133,73 @@ def backtest_v3(df):
     print(gain)
 
     return gain
+
+
+
+# From ChatGPT
+"""
+This function takes a DataFrame df of stock prices with a Close column, and performs a simple backtest for long and short trades. 
+The function calculates a 10-day simple moving average of the stock price, and generates a trading signal of 1 (long) when the price is above the moving average, and -1 (short) when the price is below the moving average. 
+The function then calculates the daily returns based on the trading signal, and calculates the cumulative returns and drawdowns.
+
+The function also creates a DataFrame trades of the trades made based on the trading signal.
+"""
+def backtest_long_short_trades(df):
+    """
+    Given a DataFrame of stock prices with a 'Close' column,
+    performs a simple backtest for long and short trades.
+    Returns a DataFrame of the trades and a summary of the backtest.
+    """
+    # Calculate the 10-day simple moving average
+    # df['SMA10'] = df['Close'].rolling(window=10).mean()
+
+    # Create a column for the trading signal (1 for long, -1 for short)
+    # df['Signal'] = 0
+    # df.loc[df['Close'] > df['SMA10'], 'Signal'] = 1
+    # df.loc[df['Close'] < df['SMA10'], 'Signal'] = -1
+
+    # Calculate the daily returns based on the trading signal
+    df['Returns'] = df['Signal'] * df['Close'].pct_change()
+
+    # Calculate the cumulative returns and drawdowns
+    df['Cumulative Returns'] = (1 + df['Returns']).cumprod()
+    df['Cumulative Max'] = df['Cumulative Returns'].cummax()
+    df['Drawdown'] = df['Cumulative Max'] - df['Cumulative Returns']
+    df['Drawdown %'] = df['Drawdown'] / df['Cumulative Max']
+
+    # Create a DataFrame of the trades
+    trades = pd.DataFrame(columns=['Entry Date', 'Entry Price', 'Exit Date', 'Exit Price', 'Returns'])
+    is_in_position = False
+    for i, row in df.iterrows():
+        if row['Signal'] == 1 and not is_in_position:
+            entry_date = i
+            entry_price = row['Close']
+            is_in_position = True
+        elif row['Signal'] == -1 and is_in_position:
+            exit_date = i
+            exit_price = row['Close']
+            returns = (exit_price - entry_price) / entry_price
+            trades.loc[len(trades)] = [entry_date, entry_price, exit_date, exit_price, returns]
+            is_in_position = False
+
+    # Calculate the summary statistics
+    total_trades = len(trades)
+    total_returns = trades['Returns'].sum()
+    winning_trades = len(trades[trades['Returns'] > 0])
+    losing_trades = len(trades[trades['Returns'] < 0])
+    win_rate = winning_trades / total_trades
+    lose_rate = losing_trades / total_trades
+    average_return = total_returns / total_trades
+    max_drawdown = df['Drawdown %'].max()
+
+    # Print the summary statistics
+    print(f"Total trades: {total_trades}")
+    print(f"Total returns: {total_returns:.2%}")
+    print(f"Win rate: {win_rate:.2%}")
+    print(f"Lose rate: {lose_rate:.2%}")
+    print(f"Average return per trade: {average_return:.2%}")
+    print(f"Max drawdown: {max_drawdown:.2%}")
+
+    print(df)
+
+    return trades
