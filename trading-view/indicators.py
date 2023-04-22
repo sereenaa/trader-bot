@@ -45,10 +45,6 @@ def ema(df, column_name, length):
 def get_long_short_signal(df): 
     # 0 = not in position, 1 = long, -1 = short
 
-    df.loc[df['Close'] > df['sma_1'], 'Signal'] = 1
-    df.loc[df['Close'] < df['sma_1'], 'Signal'] = -1
-    # if df['Close'] > df['sma_1']: 
-    #     df['Signal'] = 1
-    # elif df['Close'] < df['sma_1']:
-    #     df['Signal'] = -1
+    df.loc[df['Close'] > df['sma_1'], 'signal'] = 1
+    df.loc[df['Close'] < df['sma_1'], 'signal'] = -1
 

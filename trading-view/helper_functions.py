@@ -154,12 +154,12 @@ def backtest_long_short_trades(df):
     # df['SMA10'] = df['Close'].rolling(window=10).mean()
 
     # Create a column for the trading signal (1 for long, -1 for short)
-    # df['Signal'] = 0
-    # df.loc[df['Close'] > df['SMA10'], 'Signal'] = 1
-    # df.loc[df['Close'] < df['SMA10'], 'Signal'] = -1
+    # df['signal'] = 0
+    # df.loc[df['Close'] > df['SMA10'], 'signal'] = 1
+    # df.loc[df['Close'] < df['SMA10'], 'signal'] = -1
 
     # Calculate the daily returns based on the trading signal
-    df['Returns'] = df['Signal'] * df['Close'].pct_change()
+    df['Returns'] = df['signal'] * df['Close'].pct_change()
 
     # Calculate the cumulative returns and drawdowns
     df['Cumulative Returns'] = (1 + df['Returns']).cumprod()
@@ -171,11 +171,11 @@ def backtest_long_short_trades(df):
     trades = pd.DataFrame(columns=['Entry Date', 'Entry Price', 'Exit Date', 'Exit Price', 'Returns'])
     is_in_position = False
     for i, row in df.iterrows():
-        if row['Signal'] == 1 and not is_in_position:
+        if row['signal'] == 1 and not is_in_position:
             entry_date = i
             entry_price = row['Close']
             is_in_position = True
-        elif row['Signal'] == -1 and is_in_position:
+        elif row['signal'] == -1 and is_in_position:
             exit_date = i
             exit_price = row['Close']
             returns = (exit_price - entry_price) / entry_price
@@ -203,3 +203,88 @@ def backtest_long_short_trades(df):
     print(df)
 
     return trades
+
+
+# My own backtest function 
+def sez_backtest(df):
+    # Create a DataFrame of the trades
+    trades = pd.DataFrame(columns=['Entry Date', 'Entry Price', 'Exit Date', 'Exit Price', 'Long/Short', 'Returns'])
+
+    # Start not in a position
+    position = 0 
+
+    # Initialize stop loss and take profit
+    stop_loss = 0
+    take_profit = 0
+
+    # Loop through the data 
+    for i, row in df.iterrows(): 
+        
+        # If we're not in a trade
+        if position == 0:
+
+            # Check if we should enter a long 
+            if df['signal'][i] == 1:
+
+                # Enter a long 
+                position = 1
+
+                # Update the stop loss to 2% below the entry price 
+                stop_loss = df['Close'][i] * 0.98
+
+                # Update the take profit to 4% above the entry price 
+                take_profit = df['Close'][i] * 1.04
+
+            # Check if we should enter a short 
+            elif df['signal'][i] == -1:
+
+                # Enter a short 
+                position = -1
+
+                # Update the stop loss to 2% above the entry price 
+                stop_loss = df['Close'][i] * 1.02
+
+                # Update the take profit to 4% below the entry price 
+                take_profit = df['Close'][i] * 0.96
+
+            # Otherwise do nothing 
+            else: 
+                continue
+
+        # If we're in a long position
+        elif position == 1:
+
+            # If stop loss has been hit 
+            if df['Close'][i] <= stop_loss:
+
+                # Close the trade 
+                position = 0
+
+            # If take profit has been hit 
+            elif df['Close'][i] >= take_profit:
+
+                # Close the trade 
+                position = 0
+
+            # If the price is 1/2 of the take profit, update the stop loss to break even 
+            elif df['Close'][i] == (take_profit/2):
+                stop_loss = df['Close'][i] 
+
+
+        # If we're in a short position
+        elif position == -1:
+            # If stop loss has been hit 
+            if df['Close'][i] <= stop_loss:
+
+                # Close the trade 
+                position = 0
+
+            # If take profit has been hit 
+            elif df['Close'][i] >= take_profit:
+
+                # Close the trade 
+                position = 0
+                
+            # If the price is 1/2 of the take profit, update the stop loss to break even 
+            elif df['Close'][i] == (take_profit/2):
+                stop_loss = df['Close'][i] 
