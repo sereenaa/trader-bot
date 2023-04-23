@@ -44,21 +44,5 @@ print(new_result)
 
 
 # Test the strategies
-
-# gain = backtest(new_result)
-
-print("### HODL GAIN ###")
-hodl_gain = hodl_gain(new_result, '2023-04-04 22:34:00.000000')
-
-print("### PNL BACKTEST V2 ###")
-pnl = backtest_v2(new_result)
-print(pnl)
-
-print("### BACKTEST V3 ###")
-backtest_v3(new_result)
-
-print("### BACKTEST LONG SHORT TRADES ###")
-print(backtest_long_short_trades(new_result))
-
 print("### SEZ BACKTEST ###")
-print(sez_backtest(new_result))
+sez_backtest(new_result, stop_loss_perc=0.0001, take_profit_perc=0.02)

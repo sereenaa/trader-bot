@@ -206,9 +206,9 @@ def backtest_long_short_trades(df):
 
 
 # My own backtest function 
-def sez_backtest(df):
+def sez_backtest(df, stop_loss_perc=0.02, take_profit_perc=0.04):
     # Create a DataFrame of the trades
-    trades = pd.DataFrame(columns=['Entry Date', 'Entry Price', 'Exit Date', 'Exit Price', 'Long/Short', 'Returns'])
+    trades = pd.DataFrame(columns=['Entry Date', 'Entry Price', 'Exit Date', 'Exit Price', 'Long or Short', 'Returns'])
 
     # Start not in a position
     position = 0 
@@ -224,28 +224,34 @@ def sez_backtest(df):
         if position == 0:
 
             # Check if we should enter a long 
-            if df['signal'][i] == 1:
+            if row['signal'] == 1:
+                # print('Entered a long position')
 
                 # Enter a long 
                 position = 1
+                entry_date = row['Datetime']
+                entry_price = row['Close']
 
-                # Update the stop loss to 2% below the entry price 
-                stop_loss = df['Close'][i] * 0.98
+                # Update the stop loss to stop_loss_perc% below the entry price 
+                stop_loss = row['Close'] * (1-stop_loss_perc)
 
-                # Update the take profit to 4% above the entry price 
-                take_profit = df['Close'][i] * 1.04
+                # Update the take profit to take_profit_perc% above the entry price 
+                take_profit = row['Close'] * (1+take_profit_perc)
 
             # Check if we should enter a short 
-            elif df['signal'][i] == -1:
+            elif row['signal'] == -1:
+                # print('Entered a short position')
 
                 # Enter a short 
                 position = -1
+                entry_date = row['Datetime']
+                entry_price = row['Close']
 
-                # Update the stop loss to 2% above the entry price 
-                stop_loss = df['Close'][i] * 1.02
+                # Update the stop loss to stop_loss_perc% above the entry price 
+                stop_loss = row['Close'] * (1+stop_loss_perc)
 
-                # Update the take profit to 4% below the entry price 
-                take_profit = df['Close'][i] * 0.96
+                # Update the take profit to take_profit_perc% below the entry price 
+                take_profit = row['Close'] * (1-take_profit_perc)
 
             # Otherwise do nothing 
             else: 
@@ -259,12 +265,22 @@ def sez_backtest(df):
 
                 # Close the trade 
                 position = 0
+                exit_date = row['Datetime']
+                exit_price = row['Close']
+                returns = (exit_price - entry_price) / entry_price
+                long_or_short = 'long'
+                trades.loc[len(trades)] = [entry_date, entry_price, exit_date, exit_price, long_or_short, returns]
 
             # If take profit has been hit 
             elif df['Close'][i] >= take_profit:
 
                 # Close the trade 
                 position = 0
+                exit_date = row['Datetime']
+                exit_price = row['Close']
+                returns = (exit_price - entry_price) / entry_price
+                long_or_short = 'long'
+                trades.loc[len(trades)] = [entry_date, entry_price, exit_date, exit_price, long_or_short, returns]
 
             # If the price is 1/2 of the take profit, update the stop loss to break even 
             elif df['Close'][i] == (take_profit/2):
@@ -274,17 +290,35 @@ def sez_backtest(df):
         # If we're in a short position
         elif position == -1:
             # If stop loss has been hit 
-            if df['Close'][i] <= stop_loss:
+            if df['Close'][i] >= stop_loss:
+                # print('Stop loss target has been hit')
 
                 # Close the trade 
                 position = 0
+                exit_date = row['Datetime']
+                exit_price = row['Close']
+                returns = (entry_price - exit_price) / entry_price
+                long_or_short = 'short'
+                trades.loc[len(trades)] = [entry_date, entry_price, exit_date, exit_price, long_or_short, returns]
 
             # If take profit has been hit 
-            elif df['Close'][i] >= take_profit:
+            elif df['Close'][i] <= take_profit:
+                # print('Take profit target has been hit')
 
                 # Close the trade 
                 position = 0
+                exit_date = row['Datetime']
+                exit_price = row['Close']
+                returns = (entry_price - exit_price) / entry_price
+                long_or_short = 'short'
+                trades.loc[len(trades)] = [entry_date, entry_price, exit_date, exit_price, long_or_short, returns]
                 
             # If the price is 1/2 of the take profit, update the stop loss to break even 
             elif df['Close'][i] == (take_profit/2):
                 stop_loss = df['Close'][i] 
+
+    print(trades)
+
+
+    returns = sum(trades['Returns'])
+    print('Returns: ' + str(returns))
