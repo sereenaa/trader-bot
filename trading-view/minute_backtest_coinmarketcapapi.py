@@ -11,6 +11,8 @@ parameters = {
     'symbol':'ETH', 
     'time_period':'daily'
 }
+
+os.environ['COINMARKETCAPAPIKEY'] = ''
 api_key = os.getenv('COINMARKETCAPAPIKEY')
 headers = {
   'Accepts': 'application/json',
