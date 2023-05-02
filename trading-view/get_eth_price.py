@@ -45,4 +45,10 @@ print(new_result)
 
 # Test the strategies
 print("### SEZ BACKTEST ###")
-sez_backtest(new_result, stop_loss_perc=0.0001, take_profit_perc=0.02)
+trades = sez_backtest(new_result, stop_loss_perc=0.0001, take_profit_perc=0.01)
+
+num_neg_col1 = (trades['Returns'] < 0).sum()
+num_pos_col1 = (trades['Returns'] > 0).sum()
+
+neg_col_sum = trades[trades['Returns'] < 0]['Returns'].sum()
+pos_col_sum = trades[trades['Returns'] > 0]['Returns'].sum()

@@ -322,3 +322,5 @@ def sez_backtest(df, stop_loss_perc=0.02, take_profit_perc=0.04):
 
     returns = sum(trades['Returns'])
     print('Returns: ' + str(returns))
+
+    return trades
