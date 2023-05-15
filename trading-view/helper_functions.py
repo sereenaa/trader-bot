@@ -1,4 +1,5 @@
 import pandas as pd
+import datetime
 
 # simple backtest function using sma_1 and sma_2
 # this assumes the df already has the sma columns
@@ -206,7 +207,7 @@ def backtest_long_short_trades(df):
 
 
 # My own backtest function 
-def sez_backtest(df, stop_loss_perc=0.02, take_profit_perc=0.04):
+def sez_backtest(df, stop_loss_perc=0.02, take_profit_perc=0.04, fee_pct=0.08/100):
     # Create a DataFrame of the trades
     trades = pd.DataFrame(columns=['Entry Date', 'Entry Price', 'Exit Date', 'Exit Price', 'Long or Short', 'Returns'])
 
@@ -267,7 +268,7 @@ def sez_backtest(df, stop_loss_perc=0.02, take_profit_perc=0.04):
                 position = 0
                 exit_date = row['Datetime']
                 exit_price = row['Close']
-                returns = (exit_price - entry_price) / entry_price
+                returns = ( exit_price-entry_price) / entry_price - fee_pct
                 long_or_short = 'long'
                 trades.loc[len(trades)] = [entry_date, entry_price, exit_date, exit_price, long_or_short, returns]
 
@@ -278,13 +279,14 @@ def sez_backtest(df, stop_loss_perc=0.02, take_profit_perc=0.04):
                 position = 0
                 exit_date = row['Datetime']
                 exit_price = row['Close']
-                returns = (exit_price - entry_price) / entry_price
+                returns = ( exit_price - entry_price ) / entry_price - fee_pct
                 long_or_short = 'long'
                 trades.loc[len(trades)] = [entry_date, entry_price, exit_date, exit_price, long_or_short, returns]
 
             # If the price is 1/2 of the take profit, update the stop loss to break even 
             elif df['Close'][i] == (take_profit/2):
-                stop_loss = df['Close'][i] 
+                pass
+                # stop_loss = df['Close'][i] # Why???
 
 
         # If we're in a short position
@@ -315,12 +317,19 @@ def sez_backtest(df, stop_loss_perc=0.02, take_profit_perc=0.04):
                 
             # If the price is 1/2 of the take profit, update the stop loss to break even 
             elif df['Close'][i] == (take_profit/2):
-                stop_loss = df['Close'][i] 
+                pass
+                # stop_loss = df['Close'][i] 
 
-    print(trades)
-
-
+    # import sqlite3
+    # conn=sqlite3.connect("hhx_test.db")
+    # trades.to_sql('trades',conn, if_exists='replace')
+    # conn.close()
+    # print(trades)
+    
     returns = sum(trades['Returns'])
-    print('Returns: ' + str(returns))
+
+    dt_from=datetime.datetime.fromtimestamp(df["Datetime"].iloc[0]).strftime("%Y-%m-%d %H:%M:%S")
+    dt_to=datetime.datetime.fromtimestamp(df["Datetime"].iloc[len(df)-1]).strftime("%Y-%m-%d %H:%M:%S")
+    print(f'From {dt_from} to {dt_to}, Returns: ' + str(returns))
 
     return trades
